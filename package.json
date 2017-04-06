@@ -1,0 +1,23 @@
+{
+  "name": "servertool",
+  "version": "1.0.0",
+  "description": "Provides helper functions to perform actions on database",
+  "main": "servertool.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/BandToThePole/ServerTool.git"
+  },
+  "author": "Alex-Rice",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/BandToThePole/ServerTool/issues"
+  },
+  "homepage": "https://github.com/BandToThePole/ServerTool#readme",
+  "dependencies": {
+    "commander": "^2.9.0",
+    "tedious": "^2.0.0"
+  }
+}

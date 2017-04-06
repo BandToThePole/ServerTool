@@ -157,7 +157,7 @@ program.command('sessions').description('View Session List').action(function(){
 	});
 	
 	request.on('row', function(columns){
-	    console.log("%d,%s,%s,%s",columns[0].value,columns[1].value,columns[2].value,columns[3].value);
+	    console.log("%d\t%s   \t%s    %s",columns[0].value,columns[1].value,columns[2].value,columns[3].value);
 	});
 	
 	connection.execSql(request);
@@ -168,6 +168,8 @@ program.command('sessions').description('View Session List').action(function(){
     connection.on('error', function(err) {
 	console.log('error: ' + JSON.stringify(err) + ' ' + (new Data).toISOString());
     });
+});
+program.command('delete-sessions').description('Used for deleting Sessions with all session data.').action(function(){
 });
 
 program.parse(process.argv);

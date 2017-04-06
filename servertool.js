@@ -27,9 +27,8 @@ function parseUser(val) {
 }
 
 
-program.version('1,0,0')
-    .usage('-h for help')
-    .command('users').description('Get User List').action(function(){
+program.version('1,0,0').usage('-h for help')
+program.command('users').description('Get User List').action(function(){
 	var connection = new Connection(config);
 	connection.on('connect', function(err) {
 	    request = new Request("SELECT USERNAME FROM Users",function(err,rowcount){
@@ -144,6 +143,31 @@ program.command('add-user <username> <password>').description('Add new user (cas
 	    console.log('error: ' + JSON.stringify(err) + ' ' + (new Data).toISOString());
 	});	
     }
+});
+program.command('sessions').description('View Session List').action(function(){
+    var connection = new Connection(config);
+    connection.on('connect', function(err) {
+	request = new Request("SELECT SessionID,Username,StartTime,EndTime FROM Sessions",function(err,rowcount){
+	    if(err){
+		console.log(err);
+	    }
+	    else {
+		process.exit();
+	    }
+	});
+	
+	request.on('row', function(columns){
+	    console.log("%d,%s,%s,%s",columns[0].value,columns[1].value,columns[2].value,columns[3].value);
+	});
+	
+	connection.execSql(request);
+    });
+    connection.on('errorMessage', function(err) {
+	console.log(`errorMessage: ` + JSON.stringify(err) + ' ' + (new Date).toISOString());
+    });
+    connection.on('error', function(err) {
+	console.log('error: ' + JSON.stringify(err) + ' ' + (new Data).toISOString());
+    });
 });
 
 program.parse(process.argv);

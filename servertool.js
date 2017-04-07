@@ -27,7 +27,7 @@ function parseUser(val) {
 }
 
 
-program.version('1,0,0').usage('-h for help')
+program.version('1,0,0').usage("<command>");
 program.command('users').description('Get User List').action(function(){
 	var connection = new Connection(config);
 	connection.on('connect', function(err) {
@@ -169,8 +169,104 @@ program.command('sessions').description('View Session List').action(function(){
 	console.log('error: ' + JSON.stringify(err) + ' ' + (new Data).toISOString());
     });
 });
-program.command('delete-sessions').description('Used for deleting Sessions with all session data.').action(function(){
-});
+
+function removeSession(ids,connection){
+    if(ids.length > 0){
+	var id = ids.pop();
+	var sqlQuery = "DELETE FROM HeartRates WHERE Session = @id;";
+	sqlQuery += "DELETE FROM Calories WHERE Session = @id;";
+	sqlQuery += "DELETE FROM Distances WHERE Session = @id;";
+	sqlQuery += "DELETE FROM Locations WHERE Session = @id;";
+	sqlQuery += "DELETE FROM Sessions WHERE SessionID = @id;";
+	request = new Request(sqlQuery, function(err,rowcount){
+	    if(err){
+		console.log(err);
+		process.exit();
+	    }
+	    else {
+		removeSession(ids,connection);
+	    }		
+	});
+
+	request.addParameter('id', TYPES.Int, id);
+
+	connection.execSql(request);
+    }
+    else {
+	process.exit();
+    }
+}
+
+function list(val) {
+    return val.split(',');
+}
+    
+program.command('delete-sessions')
+    .description('Used for deleting Sessions with all session data.')
+    .option("-i, --id <ids>", "Delete sessions with listed ids", list)
+    .option("-u, --user <username>", "Delete all sessions by User")
+    .option("-a, --all", "Delete all data")
+    .action(function(options){
+	var toDelete = []
+	var connection = new Connection(config);
+	connection.on('connect', function(err) {
+	    if(options.user){
+		request = new Request("SELECT SessionID FROM Sessions WHERE USERNAME = @username",function(err,rowcount) {
+		    if(err){
+			console.log(err);
+			process.exit();
+		    }
+		    else {
+			console.log("Deleting %d sessions", rowcount);
+			removeSession(toDelete,connection);
+		    }
+		});
+
+		request.on('row',function(column){
+		    toDelete.push(column[0].value);
+		});
+
+		request.addParameter('username', TYPES.VarChar, options.user);
+
+		connection.execSql(request);
+	    }
+	    if(options.id){
+		if (options.id.length > 0){
+		    console.log(options.id);
+		    removeSession(options.id,connection);
+		}
+		else {
+		    console.log("no sessions listed");
+		}
+	    }
+	    if(options.all){
+		var query = "DELETE FROM Sessions;";
+		query += "DELETE FROM Heartrates;";
+		query += "DELETE FROM Calories;";
+		query += "DELETE FROM Distances;";
+		query += "DELETE FROM Locations;";
+		request = new Request(query,function(err,rowcount){
+		    if(err){
+			console.log(err);
+			process.exit();
+		    }
+		    else {
+			console.log("All Data Deleted");
+			process.exit();
+		    }
+		});
+
+		connection.execSql(request);
+	    }
+	
+	});
+	connection.on('errorMessage', function(err) {
+	    console.log(`errorMessage: ` + JSON.stringify(err) + ' ' + (new Date).toISOString());
+	});
+	connection.on('error', function(err) {
+	    console.log('error: ' + JSON.stringify(err) + ' ' + (new Data).toISOString());
+	}); 
+    });
 
 program.parse(process.argv);
 

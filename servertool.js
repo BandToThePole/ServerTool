@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 
-var SHA3 = require('sha3');
+var crypto = require('crypto');
 
 var Request = require('tedious').Request;
 var TYPES = require('tedious').TYPES;
@@ -119,19 +119,18 @@ program.command('add-user <username> <password>').description('Add new user (cas
 		    process.exit();
 		}
 		else {
-		    requestAdd = new Request("INSERT INTO Users VALUES (@username,@password)",function(err,rowcount){
+		    requestAdd = new Request("INSERT INTO Users VALUES (@username,@password,@salt)",function(err,rowcount){
 			if(err){
 			    console.log(err)
 			}
 			else console.log("User %s added", name);
 			process.exit();
 		    });
-
-		    var sha = new SHA3.SHA3HASH()
-		    sha.update(password);
-		    
+		    const salt = crypto.randomBytes(16).toString('hex')
+		    const key = crypto.pbkdf2Sync(password, salt, 100000, 256, 'sha256');
+		    requestAdd.addParameter('salt', TYPES.VarChar, salt);
 		    requestAdd.addParameter('username', TYPES.VarChar, name);
-		    requestAdd.addParameter('password', TYPES.VarChar, sha.digest('hex'));
+		    requestAdd.addParameter('password', TYPES.VarChar, key.toString('hex'));
 		    
 		    connection.execSql(requestAdd);
 		}

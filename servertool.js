@@ -1,5 +1,7 @@
 #!/usr/bin/env node
 
+var SHA3 = require('sha3');
+
 var Request = require('tedious').Request;
 var TYPES = require('tedious').TYPES;
 
@@ -124,9 +126,12 @@ program.command('add-user <username> <password>').description('Add new user (cas
 			else console.log("User %s added", name);
 			process.exit();
 		    });
+
+		    var sha = new SHA3.SHA3HASH()
+		    sha.update(password);
 		    
 		    requestAdd.addParameter('username', TYPES.VarChar, name);
-		    requestAdd.addParameter('password', TYPES.VarChar, password);
+		    requestAdd.addParameter('password', TYPES.VarChar, sha.digest('hex'));
 		    
 		    connection.execSql(requestAdd);
 		}

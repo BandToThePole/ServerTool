@@ -18,7 +18,6 @@
   "homepage": "https://github.com/BandToThePole/ServerTool#readme",
   "dependencies": {
     "commander": "^2.9.0",
-    "sha3": "^1.2.0",
     "tedious": "^2.0.0"
   }
 }

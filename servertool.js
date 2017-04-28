@@ -207,7 +207,7 @@ function list(val) {
     
 program.command('delete-sessions')
     .description('Used for deleting Sessions with all session data.')
-    .option("-i, --id <ids>", "Delete sessions with listed ids", list)
+    .option("-i, --id <ids>", "Delete sessions with listed ids !!WARNING!! Does not reset Daily Data, could break website!!", list)
     .option("-u, --user <username>", "Delete all sessions by User")
     .option("-a, --all", "Delete all data")
     .action(function(options){
@@ -215,7 +215,10 @@ program.command('delete-sessions')
 	var connection = new Connection(config);
 	connection.on('connect', function(err) {
 	    if(options.user){
-		request = new Request("SELECT SessionID FROM Sessions WHERE USERNAME = @username",function(err,rowcount) {
+		var query = "SELECT SessionID FROM Sessions WHERE USERNAME = @username;";
+		query += "DELETE FROM DailyCalories WHERE USERNAME = @username;";
+		query += "DELETE FROM DailyDistances WHERE USERNAME = @username;";
+		request = new Request(query,function(err,rowcount) {
 		    if(err){
 			console.log(err);
 			process.exit();
@@ -249,6 +252,8 @@ program.command('delete-sessions')
 		query += "DELETE FROM Calories;";
 		query += "DELETE FROM Distances;";
 		query += "DELETE FROM Locations;";
+		query += "DELETE FROM DailyCalories;";
+		query += "DELETE FROM DailyDistances;";
 		request = new Request(query,function(err,rowcount){
 		    if(err){
 			console.log(err);
